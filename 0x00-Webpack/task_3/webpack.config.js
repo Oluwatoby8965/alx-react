@@ -1,53 +1,68 @@
 const path = require('path');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const HTMLWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 module.exports = {
-entry: {
-all: {
-header: "./modules/header/header.js",
-body: "./modules/body/body.js", 
-footer: "./modules/footer/footer.js"
-}
+	plugins: [
+		new HTMLWebpackPlugin({
+			filename: './index.html',
+		}),
+		new CleanWebpackPlugin(),
+		],
+	devtool: 'inline-source-map',
+	mode: 'development',
+	entry: {
+		header: {
+			import: './modules/header/header.js',
+			dependOn: 'shared',
+		},
+		body: {
+			import: './modules/body/body.js',
+			dependOn: 'shared',
+		},
+		footer: {
+			import: './modules/footer/footer.js',
+			dependOn: 'shared',
+		},
+		shared: 'jquery',
+	},
+	output: {
+		path: path.resolve(__dirname, 'public'),
+		filename: '[name].bundle.js',
+	},
+	optimization: {
+		splitChunks: {
+			chunks: 'all',
+		},
+	},
+	devServer: {
+		static: path.join(__dirname, './public'),
+		open: true,
+		port: 8564,
+	},
+	performance: {
+		maxAssetSize: 1000000,
+	},  
+  module: {
+	rules: [
+		{
+			test: /\.css$/i,
+			use: ["css-loader", "style-loader"],
+		},
+		{
+			test: /\.(?:ico|gif|png|jpe?g|svg)$/i,
+			type: 'asset/resource',
+			use: [
+				"file-loader",
+				{
+					loader: "image-webpack-loader",
+					options: {
+							bypassingOnDebug: true,
+							disable: true,
+					},
+				},
+			],
+		},
+	],
 },
-mode: 'development',
-performance: {
-maxAssetSize: 1000000,
-maxEntrypointSize: 1000000
-},
-output: {
-filename: "[name].bundle.js",
-path: path.resolve(__dirname, "public")
-},
-devtool: 'inline-source-map',
-devServer: {
-contentBase: path.join(__dirname, './public'),
-compress: true,
-port: 8564,
-},
-plugins: [
-new CleanWebpackPlugin(),
-new HtmlWebpackPlugin(),
-],
-module: {
-rules: [
-{
-  test: /\.css$/i,
-  use: ['style-loader', 'css-loader']
-},
-{
-  test: /\.(gif|png|svg|jpe?g)$/i,
-  use: [
-    'file-loader',
-    {
-      loader: 'image-webpack-loader',
-      options: {
-        bypassOnDebug: true,
-        disable: true
-      }
-    }
-  ]
-}
-]
-}
-}
+};
